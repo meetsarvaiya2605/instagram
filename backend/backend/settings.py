@@ -11,21 +11,33 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+from mongoengine import connect
+from datetime import timedelta
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from .env file
+load_dotenv(BASE_DIR / '.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-1@cip_gcc)e6%q7zkkat=m6&!ah$-kmoxda(v=(&72i)@#8p0k'
+print("secret key done")
+
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
+print("DEBUG key done!")
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -37,7 +49,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'authentication'
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -72,12 +87,20 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+DATABASES = {}
+
+connect(
+    db=os.getenv('MONGO_DB_NAME'),
+    host=os.getenv('MONGO_URI'),
+    alias="default",
+    connect=True,
+    maxPoolSize=100,
+    minPoolSize=10,
+    waitQueueTimeoutMS=5000
+)
+print("connect done!")
+print("DB Name:", os.getenv('MONGO_DB_NAME'))
+print("Mongo URI:", os.getenv('MONGO_URI'))
 
 
 # Password validation
@@ -120,3 +143,12 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),  # Token valid for 1 day
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),  # Refresh token for 7 days
+    "SIGNING_KEY": "6a8f9d2b1c4e7f0a3d6b5e9c2f1a8d3b7c4e5f6a9b2d0c1e8f3a7b6d5c2e9f0"  # Use Django's SECRET_KEY
+}
+print("SIMPLE_JWT done!")
